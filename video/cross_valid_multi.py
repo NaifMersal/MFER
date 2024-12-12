@@ -519,9 +519,9 @@ if __name__ == "__main__":
         model_class=AuViLSTMModel,
         # batch_size=32,
         n_splits=1,
-        num_epochs_visual=15,
-        num_epochs_audio=8,
-        num_epochs_combined=4,
+        num_epochs_visual=30,
+        num_epochs_audio=25,
+        num_epochs_combined=8,
         learning_rate=0.001,
         num_workers=12,
         base_suffix="sequential_training"
