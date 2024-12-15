@@ -206,7 +206,7 @@ def sequential_cross_validate(
         train_fold = df.iloc[train_index].reset_index(drop=True)
         valid_fold = df.iloc[test_index].reset_index(drop=True)
         # Calculate class weights
-        stratify_on = train_fold['emotion'].to_numpy()
+        stratify_on = train_fold['Emotion'].to_numpy()
         unique_classes, class_counts = np.unique(stratify_on, return_counts=True)
         n_samples = len(stratify_on)
         class_sample_weights = {}
