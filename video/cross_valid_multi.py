@@ -10,6 +10,7 @@ from pathlib import Path
 from src.train import optimize, to_device, accuracy
 from src.helpers import train_test_split, load_model,device
 from src.data import create_dataloaders
+from sklearn.model_selection import StratifiedKFold
 
 
 
@@ -161,20 +162,13 @@ def sequential_cross_validate(
         weight_decay=weight_decay
     )
     modality_dim = {"audio":384, "visual":384 }
-    for fold in range(n_splits):
-        current_seed = seed + fold
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    for fold, (train_index, test_index) in enumerate(skf.split(df, df['stratify_on'])):
         print(f"\nTraining Fold {fold + 1}/{n_splits}")
-        
-        torch.manual_seed(current_seed)
-        np.random.seed(current_seed)
-        
+
         # Split data
-        train_fold, valid_fold = train_test_split(
-            df, test_size=valid_size,
-            stratify=df['stratify_on'],
-            random_state=current_seed
-        )
-        
+        train_fold = df.iloc[train_index].reset_index(drop=True)
+        valid_fold = df.iloc[test_index].reset_index(drop=True)
         # Calculate class weights
         stratify_on = train_fold['emotion'].to_numpy()
         unique_classes, class_counts = np.unique(stratify_on, return_counts=True)
