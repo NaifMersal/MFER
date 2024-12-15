@@ -10,6 +10,7 @@ from pathlib import Path
 from src.train import optimize, to_device, accuracy
 from src.helpers import train_test_split, load_model,device
 from src.data import  audio_data_loader
+from sklearn.model_selection import StratifiedKFold
 
 
 
@@ -197,22 +198,15 @@ def sequential_cross_validate(
     df['stratify_on'] = df['Dataset']+'_'+df['Emotion']
     df['Emotion'] = df['Emotion'].astype("category")
     df['target']=df['Emotion'].cat.codes.astype(np.int64)
-    for fold in range(n_splits):
-        current_seed = seed + fold
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    for fold, (train_index, test_index) in enumerate(skf.split(df, df['stratify_on'])):
         print(f"\nTraining Fold {fold + 1}/{n_splits}")
-        
-        torch.manual_seed(current_seed)
-        np.random.seed(current_seed)
-        
 
-        train_fold, valid_fold = train_test_split(
-            df, test_size=valid_size,
-            stratify=df['stratify_on'],
-            random_state=current_seed
-        )
-        
+        # Split data
+        train_fold = df.iloc[train_index].reset_index(drop=True)
+        valid_fold = df.iloc[test_index].reset_index(drop=True)
         # Calculate class weights
-        stratify_on = train_fold['stratify_on'].to_numpy()
+        stratify_on = train_fold['emotion'].to_numpy()
         unique_classes, class_counts = np.unique(stratify_on, return_counts=True)
         n_samples = len(stratify_on)
         class_sample_weights = {}
